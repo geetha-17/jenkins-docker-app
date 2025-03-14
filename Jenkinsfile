@@ -1,22 +1,23 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_IMAGE = 'geetha8500/jenkins-docker-app'
-        DOCKER_CREDENTIALS = '41380629-0631-44da-ba4d-add2b73c5926'
-    }
-
     stages {
-        stage('Clone Repository') {
+        stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/Geetha/jenkins-docker-app.git'
+                checkout([$class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/geetha-17/jenkins-docker-app.git',
+                        credentialsId: 'b213f9bd-9d94-4318-aec9-aabb24118bfd'
+                    ]]
+                ])
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'docker build -t $DOCKER_IMAGE:latest .'
+                    sh 'docker build -t geetha-17/jenkins-docker-app:latest .'
                 }
             }
         }
@@ -24,7 +25,7 @@ pipeline {
         stage('Login to Docker Hub') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: '41380629-0631-44da-ba4d-add', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    withCredentials([usernamePassword(credentialsId: '41380629-0631-44da-ba4d-add2b73c5926', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                         sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
                     }
                 }
@@ -34,14 +35,14 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    sh 'docker push $DOCKER_IMAGE:latest'
+                    sh 'docker push geetha-17/jenkins-docker-app:latest'
                 }
             }
         }
 
         stage('Cleanup') {
             steps {
-                sh 'docker rmi $DOCKER_IMAGE:latest'
+                sh 'docker rmi geetha-17/jenkins-docker-app:latest'
             }
         }
     }
